@@ -1,0 +1,1230 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IT Governance & Management System</title>
+<meta name="description" content="IT Management System dengan RBAC, Google Apps Script Backend, Approval Workflow, Audit Trail, dan Dashboard Real-Time.">
+<style>
+:root{
+  --bg:#f4f7fb;--panel:#fff;--navy:#0b1f3a;--blue:#1464d2;--blue2:#e9f1ff;
+  --text:#172235;--muted:#64748b;--line:#dbe4f0;--ok:#16835b;--warn:#b7791f;
+  --danger:#c53030;--shadow:0 12px 30px rgba(20,40,80,.08);--radius:18px;
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit}button{cursor:pointer}
+.app{min-height:100vh;display:grid;grid-template-columns:280px 1fr}
+.sidebar{background:var(--navy);color:#fff;padding:22px 18px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;gap:12px;align-items:center;padding:6px 8px 20px;border-bottom:1px solid rgba(255,255,255,.14)}
+.logo{width:42px;height:42px;border-radius:12px;background:#fff;color:var(--navy);display:grid;place-items:center;font-weight:900;flex-shrink:0}
+.brand h1{font-size:16px;margin:0}.brand small{color:#b9c9df;font-size:12px}
+.user-box{margin-top:14px;padding:12px;border-radius:12px;background:rgba(255,255,255,.08);font-size:12px}
+.user-box .role-badge{display:inline-block;margin-top:6px;padding:3px 8px;border-radius:999px;background:var(--blue);color:#fff;font-weight:700;font-size:11px}
+.nav{margin-top:16px}.nav button{display:block;width:100%;border:0;background:transparent;color:#d9e4f4;text-align:left;padding:10px 12px;border-radius:10px;margin:2px 0;font-size:13.5px}
+.nav button:hover,.nav button.active{background:rgba(255,255,255,.14);color:#fff;font-weight:600}
+.sidebar .tip{margin-top:18px;padding:13px;border:1px solid rgba(255,255,255,.12);border-radius:14px;color:#b9c9df;font-size:12px;line-height:1.5}
+.main{min-width:0}
+.topbar{position:sticky;top:0;z-index:5;background:rgba(244,247,251,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:13px 24px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.search{flex:1;min-width:200px;position:relative}.search input{width:100%;padding:11px 15px 11px 40px;border:1px solid var(--line);border-radius:12px;background:#fff;outline:0}.search span{position:absolute;left:14px;top:10px;color:var(--muted)}
+.btn{border:1px solid var(--line);background:#fff;color:var(--text);padding:9px 13px;border-radius:10px;font-size:13px}.btn:hover{background:#f8fafc}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}.btn.primary:hover{background:#0f52b0}
+.btn.ok-btn{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.warn-btn{background:var(--warn);border-color:var(--warn);color:#fff}
+.btn.danger-btn{background:var(--danger);border-color:var(--danger);color:#fff}
+.btn.sm{padding:6px 10px;font-size:12px;border-radius:8px}
+.content{padding:24px;max-width:1520px;margin:auto}
+.hero{background:linear-gradient(135deg,#0b1f3a,#1464d2);color:#fff;border-radius:24px;padding:28px;display:grid;grid-template-columns:1.45fr .55fr;gap:22px;box-shadow:var(--shadow)}
+.hero h2{font-size:30px;margin:0 0 10px}.hero p{margin:0;color:#dce9fb;max-width:780px;line-height:1.6;font-size:14.5px}.hero .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.pill{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.14);font-size:12px}
+.hero-card{background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:18px;display:flex;flex-direction:column;justify-content:space-between}
+.hero-card strong{font-size:28px;display:block;margin-top:4px}.hero-card span{color:#dce9fb;font-size:12.5px}
+.section{margin-top:24px}.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}.section h3{margin:0;font-size:20px}.muted{color:var(--muted);font-size:13px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:0 5px 18px rgba(20,40,80,.04)}
+.stat{font-size:26px;font-weight:800;margin-top:6px}.label{font-size:12px;color:var(--muted);font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.module{transition:.2s;cursor:pointer}.module:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.module .icon{width:38px;height:38px;border-radius:11px;background:var(--blue2);color:var(--blue);display:grid;place-items:center;font-weight:800}
+.module h4{margin:12px 0 6px}.module p{color:var(--muted);font-size:13px;line-height:1.5}.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.tag{font-size:11px;padding:4px 8px;border-radius:999px;background:#f0f4f9;color:#526174}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.toolbar select,.toolbar input{border:1px solid var(--line);background:#fff;padding:9px 11px;border-radius:10px}
+.sop-list{display:grid;gap:10px}.sop{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.sop summary{list-style:none;padding:15px 16px;cursor:pointer;display:flex;justify-content:space-between;gap:12px;font-weight:700}.sop summary::-webkit-details-marker{display:none}
+.sop-body{padding:0 16px 18px;border-top:1px solid var(--line);color:#3d4b5f;font-size:14px;line-height:1.65}.sop-body h5{margin:14px 0 7px;color:var(--navy)}
+.step{display:grid;grid-template-columns:28px 1fr;gap:10px;margin:8px 0}.step b{width:28px;height:28px;border-radius:50%;background:var(--blue2);color:var(--blue);display:grid;place-items:center;font-size:12px}
+.table-wrap{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:14px}
+.table{width:100%;border-collapse:collapse;min-width:780px}.table th,.table td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}.table th{background:#f8fafc;color:#516074;font-weight:700}
+.status{font-weight:700}.ok{color:var(--ok)}.warn{color:var(--warn)}.danger{color:var(--danger)}
+.checklist{display:grid;gap:8px}.check{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);padding:12px;border-radius:10px;cursor:pointer}.check input{width:18px;height:18px}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.bar{height:10px;background:#e8edf4;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--blue);border-radius:99px;transition:width .25s}
+.modal{position:fixed;inset:0;background:rgba(4,15,30,.6);display:none;align-items:center;justify-content:center;padding:20px;z-index:20}.modal.show{display:flex}
+.modal-card{width:min(780px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:20px;padding:22px;box-shadow:var(--shadow)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.close{border:0;background:#eef2f7;width:34px;height:34px;border-radius:50%;font-size:18px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}.field{display:grid;gap:6px}.field.full{grid-column:1/-1}.field label{font-size:12px;font-weight:700}
+.field input,.field select,.field textarea{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}.field textarea{min-height:95px;resize:vertical}
+.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;flex-wrap:wrap}
+.toast{position:fixed;right:20px;bottom:20px;background:var(--navy);color:#fff;padding:12px 16px;border-radius:12px;display:none;z-index:40;max-width:420px;font-size:13px;box-shadow:var(--shadow)}.toast.show{display:block}
+footer{padding:24px;color:var(--muted);text-align:center;font-size:12px}
+
+/* Login Overlay */
+#loginScreen{position:fixed;inset:0;z-index:50;background:linear-gradient(135deg,#071528 0%,#0b1f3a 55%,#1464d2 100%);display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{width:min(520px,100%);background:#fff;color:var(--text);border-radius:22px;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,.35)}
+.demo-box{margin-top:16px;padding:12px;border-radius:12px;background:#f4f7fb;border:1px solid var(--line);font-size:12px}
+.demo-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+
+@media(max-width:1100px){.cards{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:repeat(2,1fr)}.hero{grid-template-columns:1fr}}
+@media(max-width:800px){.app{grid-template-columns:1fr}.sidebar{position:relative;height:auto}.nav{display:grid;grid-template-columns:repeat(2,1fr)}.topbar{padding:12px}.content{padding:14px}.cards,.grid,.kpi{grid-template-columns:1fr}.form{grid-template-columns:1fr}.field.full{grid-column:auto}.hero h2{font-size:25px}}
+@media print{.sidebar,.topbar,.toolbar,.btn,footer,#loginScreen,.toast{display:none!important}.main{width:100%}.content{padding:0}.hero{box-shadow:none}.section{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <div class="logo" style="background:var(--navy);color:#fff">IT</div>
+      <div>
+        <h2 style="margin:0;font-size:20px">Login IT Governance System</h2>
+        <div class="muted">RBAC • Google Apps Script Backend • GitHub Pages Frontend</div>
+      </div>
+    </div>
+
+    <form id="loginForm" class="form" style="margin-top:12px">
+      <div class="field full">
+        <label>Google Apps Script Web App URL (disimpan lokal di browser)</label>
+        <input id="gasUrlInput" type="url" placeholder="https://script.google.com/macros/s/.../exec [fill in]">
+      </div>
+      <div class="field">
+        <label>Username</label>
+        <input id="loginUser" required placeholder="manager / sysadmin / netops / helpdesk">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input id="loginPass" type="password" required placeholder="••••••••">
+      </div>
+      <div class="field full">
+        <button type="submit" class="btn primary" style="width:100%;padding:11px">Masuk ke Sistem</button>
+      </div>
+    </form>
+
+    <div class="demo-box">
+      <b>Akun Contoh Seed [confirm] (atau Mode Offline/Demo jika URL GAS kosong):</b>
+      <div class="demo-chips">
+        <button type="button" class="btn sm" onclick="fillDemo('manager','Admin123!')">IT Manager</button>
+        <button type="button" class="btn sm" onclick="fillDemo('sysadmin','SysAdm123!')">IT Administrator</button>
+        <button type="button" class="btn sm" onclick="fillDemo('netops','NetOps123!')">Network Analyst</button>
+        <button type="button" class="btn sm" onclick="fillDemo('helpdesk','Desk123!')">Helpdesk</button>
+      </div>
+      <div class="muted" style="margin-top:8px">Jika GAS URL belum diisi, sistem tetap dapat dijalankan dalam mode lokal/simulasi untuk pengujian UI, lalu hubungkan ke Web App URL GAS untuk database & audit trail persisten.</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="mainApp" style="display:none">
+<aside class="sidebar">
+  <div class="brand">
+    <div class="logo">IT</div>
+    <div><h1>IT Governance IMS</h1><small>Role-Based Operations</small></div>
+  </div>
+
+  <div class="user-box" id="sessionBox">
+    <div><b id="curUserName">-</b> (<span id="curUserHandle">-</span>)</div>
+    <div id="curUserDept" class="muted" style="color:#b9c9df">-</div>
+    <span class="role-badge" id="curUserRole">Role</span>
+    <div style="margin-top:10px;display:flex;gap:6px">
+      <button class="btn sm" style="background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.2)" onclick="openModal('configModal')">GAS Config</button>
+      <button class="btn sm" style="background:rgba(197,48,48,.85);color:#fff;border:0" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <nav class="nav" id="nav">
+    <button class="active" data-target="dashboard">Dashboard Real-Time</button>
+    <button data-target="sop">SOP & Prosedur (10)</button>
+    <button data-target="helpdesk">Helpdesk, SLA & Approval</button>
+    <button data-target="asset">IT Asset Register</button>
+    <button data-target="network">Network Monitoring</button>
+    <button data-target="security">Cyber Security Incident</button>
+    <button data-target="backup">Backup & Disaster Recovery</button>
+    <button data-target="kpi">KPI & Risk Register</button>
+    <button data-target="checklist">Daily IT Checklist</button>
+    <button data-target="users" id="navUsers">Manajemen User</button>
+    <button data-target="audit">Audit Trail</button>
+  </nav>
+
+  <div class="tip">
+    <b>Sync & Governance</b><br>
+    Auto-refresh dashboard aktif tiap 30 detik. Approval Access/Change/P1 dilakukan oleh <b>IT Manager</b>. Data contoh ditandai <code>[confirm]</code> atau <code>[fill in]</code>.
+  </div>
+</aside>
+
+<main class="main">
+<header class="topbar">
+  <div class="search"><span>⌕</span><input id="globalSearch" aria-label="Pencarian global" placeholder="Pencarian global: SOP, ticket, asset, user, incident, risk, audit..."></div>
+  <button class="btn" onclick="syncFromBackend(true)">↻ Sync</button>
+  <button class="btn" onclick="window.print()">Cetak</button>
+  <button class="btn primary" onclick="openModal('requestModal')">+ Ticket</button>
+  <button class="btn" onclick="openModal('assetModal')">+ Asset</button>
+</header>
+
+<div class="content">
+  <!-- DASHBOARD -->
+  <section id="dashboard" class="page">
+    <div class="hero">
+      <div>
+        <div class="pill">IT MANAGEMENT SYSTEM • RBAC • APPROVAL • AUDIT TRAIL</div>
+        <h2>Dashboard IT Governance Real-Time</h2>
+        <p>Sistem manajemen tata kelola dan operasional TI terpadu dengan autentikasi berbasis role (<b>IT Manager</b>, <b>IT Administrator</b>, <b>Network Analyst</b>, <b>Helpdesk</b>), database Google Sheets via Google Apps Script, workflow persetujuan, dan audit trail.</p>
+        <div class="meta">
+          <span class="pill" id="backendModePill">Mode: Local Demo [confirm]</span>
+          <span class="pill" id="lastSyncPill">Last Sync: -</span>
+          <span class="pill">Responsive</span>
+          <span class="pill">Print-Friendly</span>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div><span>Modul Tata Kelola & Ops</span><strong id="moduleCount">10</strong></div>
+        <div style="margin-top:12px"><span>Pending Approval</span><strong id="heroApprovals">0</strong></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="cards">
+        <div class="card"><div class="label">Open Tickets</div><div class="stat" id="statOpenTickets">0</div><div class="muted">Live ticket queue</div></div>
+        <div class="card"><div class="label">Network Availability</div><div class="stat ok" id="statNetAvail">99.95%</div><div class="muted">Target SLA [confirm]</div></div>
+        <div class="card"><div class="label">Backup Success</div><div class="stat ok" id="statBackupOk">98%</div><div class="muted">Indikator [confirm]</div></div>
+        <div class="card"><div class="label">Critical Alerts</div><div class="stat danger" id="statCritAlerts">0</div><div class="muted">P1 open & non-online net</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><div><h3>10 Area SOP & Modul Operasional</h3><div class="muted">Klik kartu untuk membuka modul atau SOP terkait.</div></div></div>
+      <div class="grid" id="moduleGrid"></div>
+    </div>
+  </section>
+
+  <!-- SOP -->
+  <section id="sop" class="page" hidden>
+    <div class="section-head">
+      <div><h3>SOP & Prosedur Standar</h3><div class="muted">Mencakup 10 domain SOP: IT Administrator, Network Analyst, Helpdesk, Asset, Backup, Access, Change, Security, Server, dan Disaster Recovery.</div></div>
+      <div class="toolbar">
+        <select id="sopFilter">
+          <option value="all">Semua SOP / Fungsi</option>
+          <option value="SOP IT Administrator">SOP IT Administrator</option>
+          <option value="SOP Network Analyst">SOP Network Analyst</option>
+          <option value="SOP Helpdesk">SOP Helpdesk</option>
+          <option value="SOP IT Asset Management">SOP IT Asset Management</option>
+          <option value="SOP Backup & Restore">SOP Backup & Restore</option>
+          <option value="SOP User Account & Access">SOP User Account & Access</option>
+          <option value="SOP Change Management">SOP Change Management</option>
+          <option value="SOP Cyber Security Incident">SOP Cyber Security Incident</option>
+          <option value="SOP Server Management">SOP Server Management</option>
+          <option value="SOP Disaster Recovery">SOP Disaster Recovery</option>
+        </select>
+      </div>
+    </div>
+    <div class="sop-list" id="sopList"></div>
+  </section>
+
+  <!-- HELPDESK & SLA + APPROVAL WORKFLOW -->
+  <section id="helpdesk" class="page" hidden>
+    <div class="section-head">
+      <div><h3>Helpdesk, SLA & Approval Workflow</h3><div class="muted">Access Request, Change Request, dan P1 Critical memerlukan Approval dari IT Manager sebelum dieksekusi.</div></div>
+      <button class="btn primary" onclick="openModal('requestModal')">+ Buat Ticket</button>
+    </div>
+    <div class="cards">
+      <div class="card"><div class="label">P1 Critical</div><div class="stat danger">Segera</div><div class="muted">Layanan utama/site down [confirm]</div></div>
+      <div class="card"><div class="label">P2 High</div><div class="stat warn">≤ 1 jam</div><div class="muted">Response target [confirm]</div></div>
+      <div class="card"><div class="label">P3 Medium</div><div class="stat">≤ 4 jam</div><div class="muted">Response target [confirm]</div></div>
+      <div class="card"><div class="label">P4 Low</div><div class="stat">≤ 1 hari</div><div class="muted">Response target [confirm]</div></div>
+    </div>
+    <div class="section">
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th><th>Kategori</th><th>Prioritas</th><th>Requester / Dept</th>
+              <th>Deskripsi</th><th>Approval</th><th>Status</th><th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="ticketTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ASSET REGISTER -->
+  <section id="asset" class="page" hidden>
+    <div class="section-head">
+      <div><h3>IT Asset Register</h3><div class="muted">Data contoh ditandai [confirm] atau [fill in]. Tambah dan perbarui status aset secara interaktif.</div></div>
+      <button class="btn primary" onclick="openModal('assetModal')">+ Tambah Asset</button>
+    </div>
+    <div class="toolbar">
+      <input id="assetSearch" placeholder="Cari asset ID, jenis, model, user, lokasi...">
+      <select id="assetStatus">
+        <option value="all">Semua status</option>
+        <option value="ACTIVE">ACTIVE</option>
+        <option value="REPAIR">REPAIR</option>
+        <option value="STOCK">STOCK</option>
+        <option value="TRANSFER">TRANSFER</option>
+      </select>
+    </div>
+    <div class="section">
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Asset ID</th><th>Jenis</th><th>Merk/Model</th><th>User</th><th>Lokasi</th><th>Warranty</th><th>Status</th><th>Ubah Status</th></tr></thead>
+          <tbody id="assetTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- NETWORK MONITORING -->
+  <section id="network" class="page" hidden>
+    <div class="section-head"><div><h3>Network Monitoring Center</h3><div class="muted">Monitoring router, firewall, switch, WAN, Wi-Fi dan VPN. Klik status perangkat untuk memperbarui.</div></div></div>
+    <div class="cards">
+      <div class="card"><div class="label">Internet / WAN</div><div class="stat ok">ONLINE</div><div class="muted">Status [confirm]</div></div>
+      <div class="card"><div class="label">Firewall</div><div class="stat ok">ONLINE</div><div class="muted">Status [confirm]</div></div>
+      <div class="card"><div class="label">Packet Loss</div><div class="stat" id="netLossStat">0%</div><div class="muted">Sample metric [confirm]</div></div>
+      <div class="card"><div class="label">Latency</div><div class="stat" id="netLatStat">12 ms</div><div class="muted">Sample metric [confirm]</div></div>
+    </div>
+    <div class="section">
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Device</th><th>IP/Mgmt</th><th>Role</th><th>Latency</th><th>Loss %</th><th>Status</th><th>Last Check</th><th>Aksi</th></tr></thead>
+          <tbody id="networkTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECURITY -->
+  <section id="security" class="page" hidden>
+    <div class="section-head"><div><h3>Cyber Security Incident Response</h3><div class="muted">Alur standar: Detect → Validate → Contain → Escalate → Investigate → Recover → Document.</div></div></div>
+    <div class="grid">
+      <div class="card module"><div class="icon">01</div><h4>Detect & Validate</h4><p>Identifikasi alert, anomalous traffic, malware, account compromise atau akses tidak sah.</p></div>
+      <div class="card module"><div class="icon">02</div><h4>Contain & Escalate</h4><p>Isolasi endpoint/segment jaringan bila perlu, eskalasi ke IT Manager & Security Lead, simpan bukti.</p></div>
+      <div class="card module"><div class="icon">03</div><h4>Investigate & Recover</h4><p>Root cause analysis, eradication, recovery terverifikasi, dan laporan lesson learned.</p></div>
+    </div>
+    <div class="section">
+      <div class="card">
+        <h4>Incident Severity Matrix [confirm]</h4>
+        <div class="table-wrap"><table class="table"><thead><tr><th>Level</th><th>Contoh Kejadian</th><th>Respons</th></tr></thead><tbody>
+          <tr><td class="danger"><b>Critical</b></td><td>Ransomware meluas, core network down, kebocoran data terindikasi</td><td>Immediate escalation & P1 ticket</td></tr>
+          <tr><td class="warn"><b>High</b></td><td>Compromised account, malware pada beberapa endpoint</td><td>Prioritas tinggi & isolasi host</td></tr>
+          <tr><td><b>Medium</b></td><td>Single endpoint alert, suspicious login attempt</td><td>Investigasi terjadwal & hardening</td></tr>
+        </tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BACKUP & DR -->
+  <section id="backup" class="page" hidden>
+    <div class="section-head"><div><h3>Backup & Disaster Recovery</h3><div class="muted">Prinsip 3-2-1 backup, RTO, dan RPO. Nilai target/jadwal perlu [confirm] atau [fill in].</div></div></div>
+    <div class="grid">
+      <div class="card"><div class="icon">3-2-1</div><h4>Backup Strategy</h4><p>3 salinan data, 2 media berbeda, 1 salinan offsite/offline/immutable [confirm].</p></div>
+      <div class="card"><div class="icon">RTO</div><h4>Recovery Time Objective</h4><p>Batas waktu maksimum pemulihan layanan kritis [confirm].</p></div>
+      <div class="card"><div class="icon">RPO</div><h4>Recovery Point Objective</h4><p>Batas toleransi kehilangan data berdasarkan waktu [confirm].</p></div>
+    </div>
+    <div class="section">
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>System</th><th>Schedule</th><th>Last Backup</th><th>Restore Test</th><th>RTO</th><th>RPO</th><th>Status</th><th>Update</th></tr></thead>
+          <tbody id="backupTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI & RISK -->
+  <section id="kpi" class="page" hidden>
+    <div class="section-head"><div><h3>KPI & Risk Register</h3><div class="muted">Indikator kinerja dan daftar risiko TI. Angka contoh perlu [confirm] oleh manajemen.</div></div></div>
+    <div class="kpi">
+      <div class="card"><div class="label">Ticket Resolution [confirm]</div><div class="stat">92%</div><div class="bar"><i style="width:92%"></i></div></div>
+      <div class="card"><div class="label">Patch Compliance [confirm]</div><div class="stat">96%</div><div class="bar"><i style="width:96%"></i></div></div>
+      <div class="card"><div class="label">Change Success [confirm]</div><div class="stat">98%</div><div class="bar"><i style="width:98%"></i></div></div>
+    </div>
+    <div class="section">
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>ID</th><th>Risiko</th><th>Dampak</th><th>Probabilitas</th><th>Level</th><th>Mitigasi</th><th>Target %</th><th>Current %</th><th>Aksi</th></tr></thead>
+          <tbody id="riskTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- DAILY CHECKLIST -->
+  <section id="checklist" class="page" hidden>
+    <div class="section-head">
+      <div><h3>Daily IT & Network Checklist</h3><div class="muted">Progress dihitung otomatis dan disimpan ke database GAS (serta cache lokal).</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="resetChecklist()">Reset</button>
+        <button class="btn primary" onclick="persistChecklist()">Simpan ke DB</button>
+      </div>
+    </div>
+    <div class="checklist" id="checklistBox"></div>
+    <div class="section">
+      <div class="card">
+        <b>Progress Checklist Otomatis</b>
+        <div class="bar" style="margin-top:10px"><i id="progressBar" style="width:0%"></i></div>
+        <div id="progressText" class="muted" style="margin-top:7px">0% selesai • 0/12 item</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- USER MANAGEMENT (RBAC: IT Manager) -->
+  <section id="users" class="page" hidden>
+    <div class="section-head">
+      <div><h3>Manajemen User & Role (RBAC)</h3><div class="muted">Kelola akun pengguna dengan role: IT Manager, IT Administrator, Network Analyst, Helpdesk.</div></div>
+      <button class="btn primary" id="btnOpenAddUser" onclick="openModal('userModal')">+ Tambah User</button>
+    </div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>User ID</th><th>Username</th><th>Nama Lengkap</th><th>Email</th><th>Role</th><th>Departemen</th><th>Status</th><th>Last Login</th><th>Aksi</th></tr></thead>
+        <tbody id="userTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- AUDIT TRAIL -->
+  <section id="audit" class="page" hidden>
+    <div class="section-head">
+      <div><h3>Audit Trail</h3><div class="muted">Catatan aktivitas login, pembuatan/perubahan ticket, approval, aset, checklist, dan manajemen user.</div></div>
+      <input id="auditFilter" placeholder="Filter actor, action, entity..." style="border:1px solid var(--line);padding:9px 12px;border-radius:10px;background:#fff">
+    </div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Audit ID</th><th>Waktu (UTC)</th><th>Actor</th><th>Role</th><th>Action</th><th>Entity</th><th>ID</th><th>Details</th></tr></thead>
+        <tbody id="auditTable"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<footer>IT Governance & Management System • Frontend: GitHub Pages • Backend: Google Apps Script • Data contoh ditandai [confirm] atau [fill in]</footer>
+</main>
+</div>
+
+<!-- MODAL: CREATE TICKET -->
+<div class="modal" id="requestModal"><div class="modal-card">
+  <div class="modal-head"><div><h3 style="margin:0">Buat IT Ticket / Request</h3><div class="muted">Access Request, Change Request, dan P1 Critical otomatis masuk antrian Approval IT Manager.</div></div><button class="close" onclick="closeModal('requestModal')">×</button></div>
+  <form class="form" id="requestForm">
+    <div class="field"><label>Nama Requester</label><input required id="reqName" placeholder="[fill in]"></div>
+    <div class="field"><label>Kategori</label><select id="reqCat"><option>Incident</option><option>Service Request</option><option>Access Request</option><option>Change Request</option></select></div>
+    <div class="field"><label>Prioritas</label><select id="reqPriority"><option>P1 Critical</option><option>P2 High</option><option>P3 Medium</option><option>P4 Low</option></select></div>
+    <div class="field"><label>Departemen</label><input id="reqDept" placeholder="[fill in]"></div>
+    <div class="field full"><label>Deskripsi</label><textarea required id="reqDesc" placeholder="Jelaskan gangguan atau kebutuhan akses/perubahan..."></textarea></div>
+    <div class="actions"><button type="button" class="btn" onclick="closeModal('requestModal')">Batal</button><button class="btn primary">Simpan Ticket</button></div>
+  </form>
+</div></div>
+
+<!-- MODAL: ADD ASSET -->
+<div class="modal" id="assetModal"><div class="modal-card">
+  <div class="modal-head"><div><h3 style="margin:0">Tambah IT Asset</h3><div class="muted">Tersimpan ke sheet Assets & tercatat di Audit Trail.</div></div><button class="close" onclick="closeModal('assetModal')">×</button></div>
+  <form class="form" id="assetForm">
+    <div class="field"><label>Asset ID</label><input required id="aId" placeholder="IT-LAP-0002"></div>
+    <div class="field"><label>Jenis</label><input required id="aType" placeholder="Laptop / Server / Switch"></div>
+    <div class="field"><label>Merk / Model</label><input id="aModel" placeholder="[fill in]"></div>
+    <div class="field"><label>User</label><input id="aUser" placeholder="[fill in]"></div>
+    <div class="field"><label>Lokasi</label><input id="aLoc" placeholder="[fill in]"></div>
+    <div class="field"><label>Warranty Until</label><input id="aWarranty" placeholder="2027-12-31 [fill in]"></div>
+    <div class="field full"><label>Status</label><select id="aStatus"><option>ACTIVE</option><option>REPAIR</option><option>STOCK</option><option>TRANSFER</option></select></div>
+    <div class="actions"><button type="button" class="btn" onclick="closeModal('assetModal')">Batal</button><button class="btn primary">Tambah Asset</button></div>
+  </form>
+</div></div>
+
+<!-- MODAL: ADD USER -->
+<div class="modal" id="userModal"><div class="modal-card">
+  <div class="modal-head"><div><h3 style="margin:0">Tambah User Baru</h3><div class="muted">Hanya dapat diakses oleh role IT Manager.</div></div><button class="close" onclick="closeModal('userModal')">×</button></div>
+  <form class="form" id="userForm">
+    <div class="field"><label>Username</label><input required id="uName" placeholder="contoh: admin2"></div>
+    <div class="field"><label>Password Awal</label><input required type="password" id="uPass" placeholder="Minimal 8 karakter"></div>
+    <div class="field"><label>Nama Lengkap</label><input required id="uFull" placeholder="Nama Pegawai [fill in]"></div>
+    <div class="field"><label>Email</label><input id="uEmail" placeholder="user@company.local [fill in]"></div>
+    <div class="field"><label>Role</label><select id="uRole"><option>Helpdesk</option><option>IT Administrator</option><option>Network Analyst</option><option>IT Manager</option></select></div>
+    <div class="field"><label>Departemen</label><input id="uDept" placeholder="IT Operations [fill in]"></div>
+    <div class="actions"><button type="button" class="btn" onclick="closeModal('userModal')">Batal</button><button class="btn primary">Simpan User</button></div>
+  </form>
+</div></div>
+
+<!-- MODAL: GAS CONFIG -->
+<div class="modal" id="configModal"><div class="modal-card">
+  <div class="modal-head"><div><h3 style="margin:0">Konfigurasi Google Apps Script Backend</h3><div class="muted">Hubungkan frontend GitHub Pages dengan Web App URL Google Apps Script.</div></div><button class="close" onclick="closeModal('configModal')">×</button></div>
+  <form class="form" id="configForm">
+    <div class="field full">
+      <label>Web App URL (/exec)</label>
+      <input id="cfgGasUrl" type="url" placeholder="https://script.google.com/macros/s/AKfycb.../exec">
+    </div>
+    <div class="actions"><button type="button" class="btn" onclick="closeModal('configModal')">Tutup</button><button class="btn primary">Simpan & Sync</button></div>
+  </form>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY_URL = "ITGOV_GAS_URL";
+const STORAGE_KEY_SESSION = "ITGOV_SESSION";
+const STORAGE_KEY_LOCAL_DB = "ITGOV_LOCAL_DB_V1";
+
+const modules = [
+  ["IT Administrator","Administrasi user, endpoint, server, maintenance, backup dan dokumentasi.","01","sop","SOP IT Administrator"],
+  ["Network Analyst","Monitoring LAN/WAN, firewall, router, switch, Wi-Fi, VPN dan troubleshooting.","02","network","SOP Network Analyst"],
+  ["Helpdesk","Ticketing, klasifikasi incident, service request, access request dan SLA.","03","helpdesk","SOP Helpdesk"],
+  ["IT Asset Management","Register aset, serah terima, status, warranty dan lifecycle.","04","asset","SOP IT Asset Management"],
+  ["Backup & Restore","Backup strategy, restore test, RTO/RPO dan recovery.","05","backup","SOP Backup & Restore"],
+  ["User Account & Access","Least privilege, account lifecycle, role dan approval akses.","06","sop","SOP User Account & Access"],
+  ["Change Management","Request, risk assessment, approval, backup, implementation dan rollback.","07","sop","SOP Change Management"],
+  ["Cyber Security Incident","Detect, validate, contain, escalate, investigate, recover dan lesson learned.","08","security","SOP Cyber Security Incident"],
+  ["Server Management","Monitoring resource, patching, maintenance, availability dan recovery.","09","sop","SOP Server Management"],
+  ["Disaster Recovery","BCP/DR, critical service, recovery sequence dan testing.","10","backup","SOP Disaster Recovery"]
+];
+
+const sops = [
+  {sopType:"SOP IT Administrator",role:"IT Administrator",title:"SOP IT Administrator — Endpoint & OS Operations",desc:"Standarisasi provisioning, hardening, patching, dan pemeliharaan endpoint/workstation [confirm].",steps:["Verifikasi permintaan & asset tag sebelum deployment.","Instal OS terlisensi, security agent/EDR, dan software standar.","Terapkan kebijakan keamanan (password policy, firewall host, enkripsi disk [confirm]).","Uji fungsi perangkat dan catat ke IT Asset Register."]},
+  {sopType:"SOP Network Analyst",role:"Network Analyst",title:"SOP Network Analyst — Connectivity & Firewall Operations",desc:"Monitoring LAN/WAN, Wi-Fi, VPN, switch/router, serta perubahan rule firewall [confirm].",steps:["Pantau status link, latency, packet loss, dan resource perangkat jaringan.","Isolasi gangguan dari layer fisik, IP/DHCP/DNS, hingga routing/VPN.","Untuk perubahan rule firewall: verifikasi source/destination/port/purpose, lakukan risk review & approval IT Manager, backup config, lalu terapkan.","Verifikasi konektivitas dan perbarui dokumentasi topologi/rule."]},
+  {sopType:"SOP Helpdesk",role:"Helpdesk",title:"SOP Helpdesk — Ticketing, Triage & SLA Escalation",desc:"Pencatatan, klasifikasi prioritas P1–P4, penyelesaian tingkat awal, dan eskalasi [confirm].",steps:["Catat seluruh permintaan/gangguan ke sistem tiket dengan data requester & departemen.","Klasifikasikan Incident, Service Request, Access Request, atau Change Request.","Tetapkan prioritas P1–P4 sesuai dampak dan urgensi [confirm].","Tangani sesuai SLA atau eskalasikan ke IT Administrator / Network Analyst / IT Manager."]},
+  {sopType:"SOP IT Asset Management",role:"IT Administrator",title:"SOP IT Asset Management — Lifecycle & Custody",desc:"Pencatatan aset, mutasi/transfer, perbaikan (REPAIR), stok, dan pelepasan aset [confirm].",steps:["Beri ID unik aset saat penerimaan barang (IT-LAP-xxxx, IT-SRV-xxxx, dll [confirm]).","Catat spesifikasi, lokasi, status warranty, dan penanggung jawab/user.","Pastikan berita acara serah terima atau mutasi tercatat sebelum perpindahan.","Perbarui status aset (ACTIVE, STOCK, REPAIR, TRANSFER) dan lakukan stock opname berkala."]},
+  {sopType:"SOP Backup & Restore",role:"IT Administrator",title:"SOP Backup & Restore — 3-2-1 & Restore Verification",desc:"Pelaksanaan backup terjadwal dan pengujian pemulihan data sesuai RPO/RTO [confirm].",steps:["Periksa status job backup harian/berkala untuk database, file server, dan konfigurasi.","Tindak lanjuti kegagalan backup segera dan eskalasikan bila berulang.","Lakukan uji restore berkala [confirm] ke lingkungan pengujian/aman.","Catat hasil backup dan uji restore ke log sistem."]},
+  {sopType:"SOP User Account & Access",role:"IT Administrator",title:"SOP User Account & Access — Least Privilege & Approval",desc:"Provisioning, perubahan hak akses, review berkala, dan offboarding akun [confirm].",steps:["Pastikan Access Request memiliki persetujuan atasan / IT Manager sesuai matriks akses.","Terapkan prinsip least privilege dan role-based access.","Review hak akses secara berkala dan cabut akses segera saat resign/mutasi.","Catat seluruh perubahan akses di Audit Trail."]},
+  {sopType:"SOP Change Management",role:"IT Manager",title:"SOP Change Management — Controlled Change & Rollback",desc:"Pengendalian perubahan sistem/jaringan/aplikasi untuk meminimalkan downtime [confirm].",steps:["Ajukan Change Request lengkap dengan jadwal, dampak, rencana rollback, dan backup.","Lakukan evaluasi risiko dan dapatkan Approval dari IT Manager sebelum eksekusi.","Eksekusi perubahan pada jendela waktu yang disetujui [confirm].","Uji layanan pasca-perubahan dan siapkan rollback bila terjadi anomali."]},
+  {sopType:"SOP Cyber Security Incident",role:"Network Analyst",title:"SOP Cyber Security Incident — IR Lifecycle",desc:"Deteksi, validasi, kontainmen, eskalasi, investigasi, pemulihan, dan lesson learned [confirm].",steps:["Detect & Validate: verifikasi alert keamanan, log, atau laporan indikasi insiden.","Contain & Escalate: isolasi endpoint/VLAN terdampak dan eskalasikan insiden Critical/High.","Investigate & Eradicate: identifikasi akar masalah, bersihkan ancaman, rotasi kredensial bila perlu.","Recover & Document: pulihkan layanan, verifikasi keamanan, dan dokumentasikan lesson learned."]},
+  {sopType:"SOP Server Management",role:"IT Administrator",title:"SOP Server Management — Health, Patching & Capacity",desc:"Pemantauan CPU/RAM/disk/service, manajemen patch, dan pemeliharaan server [confirm].",steps:["Monitor kesehatan server, kapasitas penyimpanan, dan status layanan inti setiap hari.","Jadwalkan patch keamanan & sistem dengan uji coba serta backup sebelum penerapan.","Pantau log sistem dan cegah bottleneck kapasitas sebelum terjadi outage.","Dokumentasikan konfigurasi dan riwayat maintenance server."]},
+  {sopType:"SOP Disaster Recovery",role:"IT Manager",title:"SOP Disaster Recovery — BCP & Service Restoration",desc:"Pemulihan layanan kritikal saat bencana atau gangguan besar sesuai RTO/RPO [confirm].",steps:["Aktifkan rencana Disaster Recovery saat terjadi gangguan mayor/bencana sesuai otorisasi.","Prioritaskan pemulihan sistem kritikal berdasarkan urutan bisnis, RTO, dan RPO [confirm].","Koordinasikan tim IT Administrator, Network Analyst, Helpdesk, dan komunikasi stakeholder.","Lakukan simulasi/DR drill berkala dan perbarui rencana berdasarkan temuan."]}
+];
+
+const checks = [
+  "Server normal [confirm]","Backup berhasil [confirm]","Antivirus/security agent aktif [confirm]","Storage normal [confirm]",
+  "Internet normal [confirm]","Firewall normal [confirm]","Core switch normal [confirm]","Access point normal [confirm]",
+  "VPN normal [confirm]","Critical incident diperiksa","Security alert diperiksa","IT ticket diperbarui"
+];
+
+function defaultLocalDb() {
+  return {
+    users: [
+      {userId:"USR-001",username:"manager",fullName:"Budi Santoso [confirm]",email:"manager@company.local [fill in]",role:"IT Manager",department:"IT Governance",status:"ACTIVE",lastLogin:"-"},
+      {userId:"USR-002",username:"sysadmin",fullName:"Rina Wijaya [confirm]",email:"sysadmin@company.local [fill in]",role:"IT Administrator",department:"IT Infrastructure",status:"ACTIVE",lastLogin:"-"},
+      {userId:"USR-003",username:"netops",fullName:"Andi Pratama [confirm]",email:"netops@company.local [fill in]",role:"Network Analyst",department:"Network Operations",status:"ACTIVE",lastLogin:"-"},
+      {userId:"USR-004",username:"helpdesk",fullName:"Siti Nurhaliza [confirm]",email:"helpdesk@company.local [fill in]",role:"Helpdesk",department:"Service Desk",status:"ACTIVE",lastLogin:"-"}
+    ],
+    tickets: [
+      {TicketID:"INC-001",Category:"Incident",Priority:"P2 High",Requester:"Finance User [fill in]",Department:"Finance [fill in]",Description:"User department tidak dapat mengakses aplikasi ERP [confirm]",Status:"Open",ApprovalStatus:"Not Required",ApprovedBy:"",AssignedTo:"netops"},
+      {TicketID:"REQ-002",Category:"Service Request",Priority:"P4 Low",Requester:"HR User [fill in]",Department:"HR [fill in]",Description:"Instalasi software standar [confirm]",Status:"In Progress",ApprovalStatus:"Not Required",ApprovedBy:"",AssignedTo:"helpdesk"},
+      {TicketID:"ACC-003",Category:"Access Request",Priority:"P3 Medium",Requester:"Accounting User [fill in]",Department:"Accounting [fill in]",Description:"Akses shared folder keuangan [confirm]",Status:"Pending Approval",ApprovalStatus:"Pending Approval",ApprovedBy:"",AssignedTo:"sysadmin"},
+      {TicketID:"CHG-004",Category:"Change Request",Priority:"P2 High",Requester:"Network Team [confirm]",Department:"IT Network",Description:"Perubahan firewall rule [confirm]",Status:"Pending Approval",ApprovalStatus:"Pending Approval",ApprovedBy:"",AssignedTo:"netops"},
+      {TicketID:"INC-005",Category:"Incident",Priority:"P1 Critical",Requester:"Site Ops [fill in]",Department:"Site [confirm]",Description:"Internet site down [confirm]",Status:"Resolved",ApprovalStatus:"Not Required",ApprovedBy:"",AssignedTo:"netops"}
+    ],
+    assets: [
+      {AssetID:"IT-LAP-0001",Type:"Laptop",Model:"Dell Latitude [confirm]",AssignedUser:"[fill in]",Location:"Jakarta [confirm]",Status:"ACTIVE",WarrantyUntil:"2027-06-30 [fill in]"},
+      {AssetID:"IT-PC-0002",Type:"Desktop",Model:"HP ProDesk [confirm]",AssignedUser:"[fill in]",Location:"Site [confirm]",Status:"ACTIVE",WarrantyUntil:"2027-03-15 [fill in]"},
+      {AssetID:"IT-SRV-0001",Type:"Server",Model:"[fill in]",AssignedUser:"IT Infrastructure",Location:"DC Room [confirm]",Status:"ACTIVE",WarrantyUntil:"2028-01-01 [fill in]"},
+      {AssetID:"IT-NET-0001",Type:"Switch",Model:"[fill in]",AssignedUser:"Network Ops",Location:"Network Room [confirm]",Status:"ACTIVE",WarrantyUntil:"2027-12-31 [fill in]"},
+      {AssetID:"IT-AP-0001",Type:"Access Point",Model:"[fill in]",AssignedUser:"IT Operations",Location:"Office [confirm]",Status:"REPAIR",WarrantyUntil:"2026-09-01 [fill in]"}
+    ],
+    network: [
+      {DeviceName:"CORE-SW-01",MgmtIP:"[fill in]",Role:"Core Switch",LatencyMs:"4",PacketLossPct:"0",Status:"ONLINE",LastCheck:"08:30 [confirm]"},
+      {DeviceName:"FW-01",MgmtIP:"[fill in]",Role:"Firewall",LatencyMs:"6",PacketLossPct:"0",Status:"ONLINE",LastCheck:"08:30 [confirm]"},
+      {DeviceName:"RTR-WAN-01",MgmtIP:"[fill in]",Role:"Router/WAN",LatencyMs:"12",PacketLossPct:"0",Status:"ONLINE",LastCheck:"08:30 [confirm]"},
+      {DeviceName:"AP-01",MgmtIP:"[fill in]",Role:"Access Point",LatencyMs:"38",PacketLossPct:"1.5",Status:"WARNING",LastCheck:"08:29 [confirm]"}
+    ],
+    backup: [
+      {SystemName:"Database",Schedule:"Daily [confirm]",LastBackup:"[fill in]",RestoreTest:"[fill in]",RTO:"[confirm]",RPO:"[confirm]",Status:"MONITORED"},
+      {SystemName:"File Server",Schedule:"Daily [confirm]",LastBackup:"[fill in]",RestoreTest:"[fill in]",RTO:"[confirm]",RPO:"[confirm]",Status:"MONITORED"},
+      {SystemName:"Network Config",Schedule:"After Change [confirm]",LastBackup:"[fill in]",RestoreTest:"[fill in]",RTO:"[confirm]",RPO:"[confirm]",Status:"MONITORED"}
+    ],
+    kpiRisks: [
+      {RiskID:"RSK-01",RiskName:"Internet down",Impact:"Operasional terganggu",Probability:"High",Severity:"High",Mitigation:"Dual ISP / failover [confirm]",TargetPct:"99.95",CurrentPct:"99.95"},
+      {RiskID:"RSK-02",RiskName:"Server failure",Impact:"Layanan tidak tersedia",Probability:"Medium",Severity:"High",Mitigation:"Backup + HA sesuai kebutuhan [confirm]",TargetPct:"98.0",CurrentPct:"98.0"},
+      {RiskID:"RSK-03",RiskName:"Ransomware",Impact:"Kehilangan data",Probability:"High",Severity:"Critical",Mitigation:"EDR, segmentation, immutable/offline backup [confirm]",TargetPct:"96.0",CurrentPct:"96.0"},
+      {RiskID:"RSK-04",RiskName:"Power failure",Impact:"Network/server down",Probability:"Medium",Severity:"High",Mitigation:"UPS + genset sesuai desain site [confirm]",TargetPct:"98.0",CurrentPct:"98.0"}
+    ],
+    checkedIndices: [],
+    audit: [
+      {AuditID:"AUD-0001",Timestamp:new Date().toISOString(),ActorUsername:"system",ActorRole:"IT Manager",Action:"INIT_LOCAL_DB",EntityType:"System",EntityID:"LOCAL",Details:"Initialized local demo dataset [confirm]"}
+    ]
+  };
+}
+
+let state = {
+  gasUrl: localStorage.getItem(STORAGE_KEY_URL) || "",
+  session: JSON.parse(localStorage.getItem(STORAGE_KEY_SESSION) || "null"),
+  db: JSON.parse(localStorage.getItem(STORAGE_KEY_LOCAL_DB) || "null") || defaultLocalDb(),
+  pollTimer: null
+};
+
+function saveLocalDb() {
+  localStorage.setItem(STORAGE_KEY_LOCAL_DB, JSON.stringify(state.db));
+}
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => t.classList.remove("show"), 3200);
+}
+
+function fillDemo(u, p) {
+  document.getElementById("loginUser").value = u;
+  document.getElementById("loginPass").value = p;
+}
+
+function openModal(id) {
+  if (id === "configModal") document.getElementById("cfgGasUrl").value = state.gasUrl;
+  document.getElementById(id).classList.add("show");
+}
+function closeModal(id) { document.getElementById(id).classList.remove("show"); }
+
+async function callGas(payload) {
+  if (!state.gasUrl) return null;
+  const res = await fetch(state.gasUrl, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(Object.assign({}, payload, { token: state.session && state.session.token }))
+  });
+  return await res.json();
+}
+
+function logLocalAudit(action, entityType, entityId, details) {
+  const u = (state.session && state.session.user) || { username: "guest", role: "Unknown" };
+  const nextId = "AUD-" + String(state.db.audit.length + 1).padStart(4, "0");
+  state.db.audit.unshift({
+    AuditID: nextId,
+    Timestamp: new Date().toISOString(),
+    ActorUsername: u.username,
+    ActorRole: u.role,
+    Action: action,
+    EntityType: entityType,
+    EntityID: entityId,
+    Details: details
+  });
+  saveLocalDb();
+}
+
+document.getElementById("loginForm").onsubmit = async (e) => {
+  e.preventDefault();
+  const urlInput = document.getElementById("gasUrlInput").value.trim();
+  if (urlInput) {
+    state.gasUrl = urlInput;
+    localStorage.setItem(STORAGE_KEY_URL, urlInput);
+  }
+  const username = document.getElementById("loginUser").value.trim().toLowerCase();
+  const password = document.getElementById("loginPass").value;
+
+  if (state.gasUrl) {
+    try {
+      toast("Menghubungkan ke Google Apps Script...");
+      const res = await fetch(state.gasUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "login", username, password })
+      });
+      const json = await res.json();
+      if (!json.ok) {
+        toast(json.error || "Login gagal.");
+        return;
+      }
+      state.session = { token: json.token, user: json.user };
+      localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(state.session));
+      applyBackendData(json.data);
+      enterApp();
+      toast("Login berhasil sebagai " + json.user.role);
+      return;
+    } catch (err) {
+      toast("Gagal konek GAS (" + err.message + "). Cek Web App URL.");
+      return;
+    }
+  }
+
+  // Fallback Local Demo Login
+  const found = state.db.users.find(u => u.username.toLowerCase() === username && u.status === "ACTIVE");
+  const validDemoPass = ["Admin123!", "SysAdm123!", "NetOps123!", "Desk123!"].includes(password) || password.length >= 6;
+  if (!found || !validDemoPass) {
+    toast("Login demo gagal. Gunakan akun contoh atau isi password >= 6 karakter.");
+    return;
+  }
+  found.lastLogin = new Date().toISOString();
+  state.session = { token: "local-demo-token", user: found };
+  localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(state.session));
+  logLocalAudit("LOGIN_SUCCESS", "User", found.userId, "Logged in (Local Demo Mode)");
+  enterApp();
+  toast("Masuk sebagai " + found.role + " (Local Demo Mode)");
+};
+
+function enterApp() {
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("mainApp").style.display = "grid";
+  const u = state.session.user;
+  document.getElementById("curUserName").textContent = u.fullName;
+  document.getElementById("curUserHandle").textContent = "@" + u.username;
+  document.getElementById("curUserDept").textContent = u.department || "-";
+  document.getElementById("curUserRole").textContent = u.role;
+  document.getElementById("backendModePill").textContent = state.gasUrl ? "Backend: Google Apps Script (Live)" : "Mode: Local Demo [confirm]";
+
+  const isManager = u.role === "IT Manager";
+  document.getElementById("navUsers").style.display = isManager ? "block" : "none";
+  document.getElementById("btnOpenAddUser").style.display = isManager ? "inline-block" : "none";
+
+  renderAll();
+  startRealtimePolling();
+}
+
+function logout() {
+  if (state.pollTimer) clearInterval(state.pollTimer);
+  localStorage.removeItem(STORAGE_KEY_SESSION);
+  state.session = null;
+  document.getElementById("mainApp").style.display = "none";
+  document.getElementById("loginScreen").style.display = "flex";
+}
+
+function applyBackendData(d) {
+  if (!d) return;
+  if (d.users) state.db.users = d.users;
+  if (d.tickets) state.db.tickets = d.tickets;
+  if (d.assets) state.db.assets = d.assets;
+  if (d.network) state.db.network = d.network;
+  if (d.backup) state.db.backup = d.backup;
+  if (d.kpiRisks) state.db.kpiRisks = d.kpiRisks;
+  if (d.audit) state.db.audit = d.audit;
+  if (d.latestChecklist && d.latestChecklist.CheckedItemsJson) {
+    try { state.db.checkedIndices = JSON.parse(d.latestChecklist.CheckedItemsJson); } catch (e) {}
+  }
+  saveLocalDb();
+  document.getElementById("lastSyncPill").textContent = "Last Sync: " + new Date().toLocaleTimeString();
+}
+
+async function syncFromBackend(showMsg = false) {
+  if (!state.gasUrl || !state.session) {
+    document.getElementById("lastSyncPill").textContent = "Last Sync: Local (" + new Date().toLocaleTimeString() + ")";
+    renderAll();
+    if (showMsg) toast("Data lokal diperbarui.");
+    return;
+  }
+  try {
+    const res = await callGas({ action: "syncAll" });
+    if (res && res.ok) {
+      applyBackendData(res.data);
+      renderAll();
+      if (showMsg) toast("Tersinkronisasi dengan Google Sheets.");
+    }
+  } catch (e) {
+    if (showMsg) toast("Sync gagal: " + e.message);
+  }
+}
+
+function startRealtimePolling() {
+  if (state.pollTimer) clearInterval(state.pollTimer);
+  state.pollTimer = setInterval(() => {
+    if (state.gasUrl && state.session) syncFromBackend(false);
+  }, 30000);
+}
+
+function showPage(id) {
+  if (id === "users" && state.session && state.session.user.role !== "IT Manager") {
+    toast("Halaman Manajemen User khusus IT Manager.");
+    id = "dashboard";
+  }
+  document.querySelectorAll(".page").forEach(p => p.hidden = p.id !== id);
+  document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("active", b.dataset.target === id));
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+document.querySelectorAll("#nav button").forEach(b => b.onclick = () => showPage(b.dataset.target));
+
+function renderModules() {
+  document.getElementById("moduleGrid").innerHTML = modules.map(m => `
+    <div class="card module" onclick="openModuleFromCard('${m[3]}','${m[4]}')">
+      <div class="icon">${m[2]}</div>
+      <h4>${m[0]}</h4>
+      <p>${m[1]}</p>
+      <div class="tags"><span class="tag">${m[4]}</span><span class="tag">Governance</span></div>
+    </div>`).join("");
+}
+function openModuleFromCard(pageId, sopFilterVal) {
+  if (pageId === "sop" && sopFilterVal) {
+    document.getElementById("sopFilter").value = sopFilterVal;
+    renderSops();
+  }
+  showPage(pageId);
+}
+
+function renderSops() {
+  const filter = document.getElementById("sopFilter").value;
+  document.getElementById("sopList").innerHTML = sops
+    .filter(s => filter === "all" || s.sopType === filter)
+    .map(s => `
+      <details class="sop">
+        <summary>
+          <span>${s.title}<small style="display:block;color:#64748b;font-weight:400;margin-top:4px">${s.role} • ${s.desc}</small></span>
+          <span>＋</span>
+        </summary>
+        <div class="sop-body">
+          <h5>Langkah Prosedur</h5>
+          ${s.steps.map((x, i) => `<div class="step"><b>${i + 1}</b><div>${x}</div></div>`).join("")}
+        </div>
+      </details>`).join("");
+}
+document.getElementById("sopFilter").onchange = renderSops;
+
+function renderDashboardStats() {
+  const openTickets = state.db.tickets.filter(t => String(t.Status).toLowerCase() !== "resolved" && String(t.Status).toLowerCase() !== "rejected").length;
+  const pendingApprovals = state.db.tickets.filter(t => String(t.ApprovalStatus) === "Pending Approval").length;
+  const critAlerts = state.db.tickets.filter(t => String(t.Priority).indexOf("P1") === 0 && String(t.Status).toLowerCase() !== "resolved").length +
+                     state.db.network.filter(n => String(n.Status).toUpperCase() !== "ONLINE").length;
+  document.getElementById("statOpenTickets").textContent = openTickets;
+  document.getElementById("heroApprovals").textContent = pendingApprovals;
+  document.getElementById("statCritAlerts").textContent = critAlerts;
+}
+
+function renderTickets() {
+  const role = state.session && state.session.user.role;
+  const canApprove = role === "IT Manager";
+  document.getElementById("ticketTable").innerHTML = state.db.tickets.map(t => {
+    const stClass = t.Status === "Resolved" || t.Status === "Approved / Ready" ? "ok" : (t.Status === "Open" || t.Status === "Rejected" || t.Priority.indexOf("P1") === 0 ? "danger" : "warn");
+    const appClass = t.ApprovalStatus === "Approved" ? "ok" : (t.ApprovalStatus === "Pending Approval" ? "warn" : (t.ApprovalStatus === "Rejected" ? "danger" : ""));
+    let actionHtml = `
+      <select class="btn sm" onchange="changeTicketStatus('${t.TicketID}', this.value)">
+        <option value="">Status...</option>
+        <option value="Open">Open</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Resolved">Resolved</option>
+      </select>`;
+    if (t.ApprovalStatus === "Pending Approval" && canApprove) {
+      actionHtml += `
+        <button class="btn sm ok-btn" onclick="decideTicket('${t.TicketID}','APPROVE')">Approve</button>
+        <button class="btn sm danger-btn" onclick="decideTicket('${t.TicketID}','REJECT')">Reject</button>`;
+    }
+    return `<tr>
+      <td><b>${t.TicketID}</b></td>
+      <td>${t.Category}</td>
+      <td>${t.Priority}</td>
+      <td>${t.Requester}<br><span class="muted">${t.Department}</span></td>
+      <td>${t.Description}</td>
+      <td class="status ${appClass}">${t.ApprovalStatus || "-"}${t.ApprovedBy ? "<br><span class='muted'>by " + t.ApprovedBy + "</span>" : ""}</td>
+      <td class="status ${stClass}">${t.Status}</td>
+      <td>${actionHtml}</td>
+    </tr>`;
+  }).join("");
+}
+
+async function changeTicketStatus(ticketId, nextStatus) {
+  if (!nextStatus) return;
+  if (state.gasUrl) {
+    const res = await callGas({ action: "updateTicketStatus", payload: { ticketId, status: nextStatus } });
+    if (!res || !res.ok) { toast(res ? res.error : "Gagal update status"); renderTickets(); return; }
+    toast(res.message);
+    await syncFromBackend(false);
+    return;
+  }
+  const t = state.db.tickets.find(x => x.TicketID === ticketId);
+  if (!t) return;
+  if (t.ApprovalStatus === "Pending Approval") { toast("Ticket masih menunggu Approval IT Manager."); renderTickets(); return; }
+  t.Status = nextStatus;
+  saveLocalDb();
+  logLocalAudit("UPDATE_TICKET_STATUS", "Ticket", ticketId, "Status -> " + nextStatus);
+  renderTickets(); renderDashboardStats(); renderAudit();
+  toast("Status ticket " + ticketId + " -> " + nextStatus);
+}
+
+async function decideTicket(ticketId, decision) {
+  if (state.gasUrl) {
+    const res = await callGas({ action: "approveTicket", payload: { ticketId, decision } });
+    if (!res || !res.ok) { toast(res ? res.error : "Gagal approval"); return; }
+    toast(res.message);
+    await syncFromBackend(false);
+    return;
+  }
+  const t = state.db.tickets.find(x => x.TicketID === ticketId);
+  if (!t) return;
+  t.ApprovalStatus = decision === "APPROVE" ? "Approved" : "Rejected";
+  t.Status = decision === "APPROVE" ? "Approved / Ready" : "Rejected";
+  t.ApprovedBy = state.session.user.username;
+  saveLocalDb();
+  logLocalAudit("APPROVAL_" + decision, "Ticket", ticketId, "Decision: " + decision);
+  renderTickets(); renderDashboardStats(); renderAudit();
+  toast("Ticket " + ticketId + " diproses: " + decision);
+}
+
+document.getElementById("requestForm").onsubmit = async (e) => {
+  e.preventDefault();
+  const payload = {
+    requester: document.getElementById("reqName").value.trim(),
+    category: document.getElementById("reqCat").value,
+    priority: document.getElementById("reqPriority").value,
+    department: document.getElementById("reqDept").value.trim() || "[fill in]",
+    description: document.getElementById("reqDesc").value.trim()
+  };
+  if (state.gasUrl) {
+    const res = await callGas({ action: "createTicket", payload });
+    if (!res || !res.ok) { toast(res ? res.error : "Gagal simpan ticket"); return; }
+    closeModal("requestModal"); e.target.reset();
+    toast(res.message);
+    await syncFromBackend(false);
+    showPage("helpdesk");
+    return;
+  }
+  const needsApproval = payload.category === "Access Request" || payload.category === "Change Request" || payload.priority.indexOf("P1") === 0;
+  const prefix = payload.category.startsWith("Access") ? "ACC-" : (payload.category.startsWith("Change") ? "CHG-" : (payload.category.startsWith("Service") ? "REQ-" : "INC-"));
+  const id = prefix + String(state.db.tickets.length + 1).padStart(3, "0");
+  state.db.tickets.unshift({
+    TicketID: id,
+    Category: payload.category,
+    Priority: payload.priority,
+    Requester: payload.requester,
+    Department: payload.department,
+    Description: payload.description,
+    Status: needsApproval ? "Pending Approval" : "Open",
+    ApprovalStatus: needsApproval ? "Pending Approval" : "Not Required",
+    ApprovedBy: "",
+    AssignedTo: state.session.user.username
+  });
+  saveLocalDb();
+  logLocalAudit("CREATE_TICKET", "Ticket", id, payload.category + " (" + payload.priority + ")");
+  closeModal("requestModal"); e.target.reset();
+  renderTickets(); renderDashboardStats(); renderAudit();
+  toast("Ticket " + id + " ditambahkan.");
+  showPage("helpdesk");
+};
+
+function renderAssets() {
+  const q = document.getElementById("assetSearch").value.toLowerCase();
+  const st = document.getElementById("assetStatus").value;
+  document.getElementById("assetTable").innerHTML = state.db.assets
+    .filter(a => (st === "all" || a.Status === st) && Object.values(a).join(" ").toLowerCase().includes(q))
+    .map(a => {
+      const cls = a.Status === "ACTIVE" ? "ok" : (a.Status === "REPAIR" ? "danger" : "warn");
+      return `<tr>
+        <td><b>${a.AssetID}</b></td><td>${a.Type}</td><td>${a.Model}</td><td>${a.AssignedUser}</td>
+        <td>${a.Location}</td><td>${a.WarrantyUntil || "[fill in]"}</td>
+        <td class="status ${cls}">${a.Status}</td>
+        <td>
+          <select class="btn sm" onchange="changeAssetStatus('${a.AssetID}', this.value)">
+            <option value="">Status...</option>
+            <option value="ACTIVE">ACTIVE</option>
+            <option value="STOCK">STOCK</option>
+            <option value="REPAIR">REPAIR</option>
+            <option value="TRANSFER">TRANSFER</option>
+          </select>
+        </td>
+      </tr>`;
+    }).join("");
+}
+document.getElementById("assetSearch").oninput = renderAssets;
+document.getElementById("assetStatus").onchange = renderAssets;
+
+async function changeAssetStatus(assetId, nextStatus) {
+  if (!nextStatus) return;
+  if (state.gasUrl) {
+    const res = await callGas({ action: "updateAssetStatus", payload: { assetId, status: nextStatus } });
+    if (res && res.ok) { toast(res.message); await syncFromBackend(false); }
+    return;
+  }
+  const a = state.db.assets.find(x => x.AssetID === assetId);
+  if (a) {
+    a.Status = nextStatus;
+    saveLocalDb();
+    logLocalAudit("UPDATE_ASSET_STATUS", "Asset", assetId, "Status -> " + nextStatus);
+    renderAssets(); renderAudit();
+    toast("Status asset " + assetId + " -> " + nextStatus);
+  }
+}
+
+document.getElementById("assetForm").onsubmit = async (e) => {
+  e.preventDefault();
+  const payload = {
+    assetId: document.getElementById("aId").value.trim(),
+    type: document.getElementById("aType").value.trim(),
+    model: document.getElementById("aModel").value.trim() || "[fill in]",
+    assignedUser: document.getElementById("aUser").value.trim() || "[fill in]",
+    location: document.getElementById("aLoc").value.trim() || "[fill in]",
+    warrantyUntil: document.getElementById("aWarranty").value.trim() || "[fill in]",
+    status: document.getElementById("aStatus").value
+  };
+  if (state.gasUrl) {
+    const res = await callGas({ action: "createAsset", payload });
+    if (!res || !res.ok) { toast(res ? res.error : "Gagal tambah asset"); return; }
+    closeModal("assetModal"); e.target.reset();
+    toast(res.message);
+    await syncFromBackend(false);
+    showPage("asset");
+    return;
+  }
+  state.db.assets.push({
+    AssetID: payload.assetId, Type: payload.type, Model: payload.model,
+    AssignedUser: payload.assignedUser, Location: payload.location,
+    WarrantyUntil: payload.warrantyUntil, Status: payload.status
+  });
+  saveLocalDb();
+  logLocalAudit("CREATE_ASSET", "Asset", payload.assetId, payload.type + " (" + payload.status + ")");
+  closeModal("assetModal"); e.target.reset();
+  renderAssets(); renderAudit();
+  toast("Asset ditambahkan.");
+  showPage("asset");
+};
+
+function renderNetwork() {
+  document.getElementById("networkTable").innerHTML = state.db.network.map(n => {
+    const cls = String(n.Status).toUpperCase() === "ONLINE" ? "ok" : (String(n.Status).toUpperCase() === "WARNING" ? "warn" : "danger");
+    return `<tr>
+      <td><b>${n.DeviceName}</b></td><td>${n.MgmtIP}</td><td>${n.Role}</td>
+      <td>${n.LatencyMs || "-"} ms</td><td>${n.PacketLossPct || "0"}%</td>
+      <td class="status ${cls}">${n.Status}</td><td>${n.LastCheck}</td>
+      <td>
+        <button class="btn sm" onclick="toggleNetStatus('${n.DeviceName}')">Toggle ONLINE/WARNING</button>
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+async function toggleNetStatus(deviceName) {
+  const dev = state.db.network.find(x => x.DeviceName === deviceName);
+  if (!dev) return;
+  const next = dev.Status === "ONLINE" ? "WARNING" : "ONLINE";
+  if (state.gasUrl) {
+    const res = await callGas({ action: "updateNetworkDevice", payload: { deviceName, status: next } });
+    if (res && res.ok) { toast(res.message); await syncFromBackend(false); }
+    return;
+  }
+  dev.Status = next;
+  dev.LastCheck = new Date().toTimeString().slice(0, 5);
+  saveLocalDb();
+  logLocalAudit("UPDATE_NETWORK_DEVICE", "NetworkDevice", deviceName, "Status -> " + next);
+  renderNetwork(); renderDashboardStats(); renderAudit();
+  toast(deviceName + " -> " + next);
+}
+
+function renderBackup() {
+  document.getElementById("backupTable").innerHTML = state.db.backup.map(b => `
+    <tr>
+      <td><b>${b.SystemName}</b></td><td>${b.Schedule}</td><td>${b.LastBackup}</td>
+      <td>${b.RestoreTest}</td><td>${b.RTO || "[confirm]"}</td><td>${b.RPO || "[confirm]"}</td>
+      <td class="status ok">${b.Status}</td>
+      <td><button class="btn sm" onclick="markBackupNow('${b.SystemName}')">Catat Backup</button></td>
+    </tr>`).join("");
+}
+
+async function markBackupNow(systemName) {
+  const nowStr = new Date().toISOString().slice(0, 16).replace("T", " ");
+  if (state.gasUrl) {
+    const res = await callGas({ action: "addBackupLog", payload: { systemName, lastBackup: nowStr, status: "MONITORED" } });
+    if (res && res.ok) { toast(res.message); await syncFromBackend(false); }
+    return;
+  }
+  const b = state.db.backup.find(x => x.SystemName === systemName);
+  if (b) {
+    b.LastBackup = nowStr;
+    saveLocalDb();
+    logLocalAudit("UPDATE_BACKUP_LOG", "Backup", systemName, "LastBackup -> " + nowStr);
+    renderBackup(); renderAudit();
+    toast("Backup " + systemName + " dicatat pada " + nowStr);
+  }
+}
+
+function renderRisks() {
+  document.getElementById("riskTable").innerHTML = state.db.kpiRisks.map(r => {
+    const sevCls = r.Severity === "Critical" ? "danger" : "warn";
+    return `<tr>
+      <td><b>${r.RiskID}</b></td><td>${r.RiskName}</td><td>${r.Impact}</td><td>${r.Probability}</td>
+      <td class="status ${sevCls}">${r.Severity}</td><td>${r.Mitigation}</td>
+      <td>${r.TargetPct}%</td><td><b>${r.CurrentPct}%</b></td>
+      <td><button class="btn sm" onclick="bumpRiskPct('${r.RiskID}')">+1% Realisasi</button></td>
+    </tr>`;
+  }).join("");
+}
+
+async function bumpRiskPct(riskId) {
+  const r = state.db.kpiRisks.find(x => x.RiskID === riskId);
+  if (!r) return;
+  const nextVal = Math.min(100, Number((parseFloat(r.CurrentPct || 0) + 1).toFixed(2)));
+  if (state.gasUrl) {
+    const res = await callGas({ action: "updateKpiRisk", payload: { riskId, currentPct: nextVal } });
+    if (res && res.ok) { toast(res.message); await syncFromBackend(false); }
+    return;
+  }
+  r.CurrentPct = String(nextVal);
+  saveLocalDb();
+  logLocalAudit("UPDATE_KPI_RISK", "KpiRisk", riskId, "CurrentPct -> " + nextVal + "%");
+  renderRisks(); renderAudit();
+  toast(riskId + " realisasi -> " + nextVal + "%");
+}
+
+function renderChecklist() {
+  document.getElementById("checklistBox").innerHTML = checks.map((x, i) => {
+    const checked = state.db.checkedIndices.includes(i) ? "checked" : "";
+    return `<label class="check"><input type="checkbox" data-i="${i}" ${checked}> <span>${x}</span></label>`;
+  }).join("");
+  document.querySelectorAll("#checklistBox input").forEach(c => c.onchange = () => {
+    state.db.checkedIndices = [...document.querySelectorAll("#checklistBox input")].filter(x => x.checked).map(x => Number(x.dataset.i));
+    saveLocalDb();
+    updateProgress();
+  });
+  updateProgress();
+}
+
+function updateProgress() {
+  const total = checks.length;
+  const done = state.db.checkedIndices.length;
+  const pct = Math.round((done / total) * 100);
+  document.getElementById("progressBar").style.width = pct + "%";
+  document.getElementById("progressText").textContent = `${pct}% selesai • ${done}/${total} item`;
+}
+
+function resetChecklist() {
+  state.db.checkedIndices = [];
+  saveLocalDb();
+  renderChecklist();
+  toast("Checklist direset.");
+}
+
+async function persistChecklist() {
+  const total = checks.length;
+  const pct = Math.round((state.db.checkedIndices.length / total) * 100);
+  if (state.gasUrl) {
+    const res = await callGas({ action: "saveChecklist", payload: { checkedIndices: state.db.checkedIndices, totalItems: total } });
+    if (res && res.ok) { toast(res.message); await syncFromBackend(false); }
+    return;
+  }
+  logLocalAudit("SAVE_CHECKLIST", "Checklist", "TODAY", "Progress " + pct + "%");
+  renderAudit();
+  toast("Progress checklist (" + pct + "%) tersimpan.");
+}
+
+function renderUsers() {
+  document.getElementById("userTable").innerHTML = state.db.users.map(u => {
+    const stCls = u.status === "ACTIVE" ? "ok" : "danger";
+    return `<tr>
+      <td><b>${u.userId}</b></td><td>${u.username}</td><td>${u.fullName}</td><td>${u.email || "-"}</td>
+      <td>
+        <select class="btn sm" onchange="changeUserRole('${u.userId}', this.value)">
+          <option ${u.role==="IT Manager"?"selected":""}>IT Manager</option>
+          <option ${u.role==="IT Administrator"?"selected":""}>IT Administrator</option>
+          <option ${u.role==="Network Analyst"?"selected":""}>Network Analyst</option>
+          <option ${u.role==="Helpdesk"?"selected":""}>Helpdesk</option>
+        </select>
+      </td>
+      <td>${u.department || "-"}</td>
+      <td class="status ${stCls}">${u.status}</td>
+      <td class="muted">${u.lastLogin || "-"}</td>
+      <td><button class="btn sm" onclick="toggleUserActive('${u.userId}')">Toggle Status</button></td>
+    </tr>`;
+  }).join("");
+}
+
+async function changeUserRole(userId, role) {
+  if (state.gasUrl) {
+    const res = await callGas({ action: "updateUser", payload: { userId, role } });
+    if (res && res.ok) { toast(res.message); await syncFromBackend(false); }
+    return;
+  }
+  const u = state.db.users.find(x => x.userId === userId);
+  if (u) {
+    u.role = role;
+    saveLocalDb();
+    logLocalAudit("UPDATE_USER", "User", userId, "Role -> " + role);
+    renderUsers(); renderAudit();
+    toast("Role " + u.username + " -> " + role);
+  }
+}
+
+async function toggleUserActive(userId) {
+  if (state.gasUrl) {
+    const res = await callGas({ action: "toggleUserStatus", payload: { userId } });
+    if (res && res.ok) { toast(res.message); await syncFromBackend(false); }
+    return;
+  }
+  const u = state.db.users.find(x => x.userId === userId);
+  if (u) {
+    u.status = u.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+    saveLocalDb();
+    logLocalAudit("TOGGLE_USER_STATUS", "User", userId, "Status -> " + u.status);
+    renderUsers(); renderAudit();
+    toast("Status user " + u.username + " -> " + u.status);
+  }
+}
+
+document.getElementById("userForm").onsubmit = async (e) => {
+  e.preventDefault();
+  const payload = {
+    username: document.getElementById("uName").value.trim().toLowerCase(),
+    password: document.getElementById("uPass").value,
+    fullName: document.getElementById("uFull").value.trim(),
+    email: document.getElementById("uEmail").value.trim() || "[fill in]",
+    role: document.getElementById("uRole").value,
+    department: document.getElementById("uDept").value.trim() || "[fill in]"
+  };
+  if (state.gasUrl) {
+    const res = await callGas({ action: "createUser", payload });
+    if (!res || !res.ok) { toast(res ? res.error : "Gagal tambah user"); return; }
+    closeModal("userModal"); e.target.reset();
+    toast(res.message);
+    await syncFromBackend(false);
+    return;
+  }
+  const id = "USR-" + String(state.db.users.length + 1).padStart(3, "0");
+  state.db.users.push({ userId: id, username: payload.username, fullName: payload.fullName, email: payload.email, role: payload.role, department: payload.department, status: "ACTIVE", lastLogin: "-" });
+  saveLocalDb();
+  logLocalAudit("CREATE_USER", "User", id, "Created " + payload.username + " (" + payload.role + ")");
+  closeModal("userModal"); e.target.reset();
+  renderUsers(); renderAudit();
+  toast("User " + payload.username + " ditambahkan.");
+};
+
+function renderAudit() {
+  const q = (document.getElementById("auditFilter").value || "").toLowerCase();
+  document.getElementById("auditTable").innerHTML = state.db.audit
+    .filter(a => Object.values(a).join(" ").toLowerCase().includes(q))
+    .map(a => `<tr>
+      <td><b>${a.AuditID}</b></td>
+      <td class="muted">${a.Timestamp}</td>
+      <td>${a.ActorUsername}</td>
+      <td>${a.ActorRole}</td>
+      <td><b>${a.Action}</b></td>
+      <td>${a.EntityType}</td>
+      <td>${a.EntityID}</td>
+      <td>${a.Details}</td>
+    </tr>`).join("");
+}
+document.getElementById("auditFilter").oninput = renderAudit;
+
+document.getElementById("configForm").onsubmit = async (e) => {
+  e.preventDefault();
+  const nextUrl = document.getElementById("cfgGasUrl").value.trim();
+  state.gasUrl = nextUrl;
+  localStorage.setItem(STORAGE_KEY_URL, nextUrl);
+  document.getElementById("backendModePill").textContent = state.gasUrl ? "Backend: Google Apps Script (Live)" : "Mode: Local Demo [confirm]";
+  closeModal("configModal");
+  await syncFromBackend(true);
+};
+
+document.getElementById("globalSearch").oninput = (e) => {
+  const q = e.target.value.toLowerCase().trim();
+  if (!q) return;
+  const visiblePages = [...document.querySelectorAll(".page")].filter(p => !(p.id === "users" && state.session && state.session.user.role !== "IT Manager"));
+  const target = visiblePages.find(p => p.innerText.toLowerCase().includes(q));
+  if (target) showPage(target.id);
+};
+
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("modal")) e.target.classList.remove("show");
+});
+
+function renderAll() {
+  renderModules();
+  renderSops();
+  renderDashboardStats();
+  renderTickets();
+  renderAssets();
+  renderNetwork();
+  renderBackup();
+  renderRisks();
+  renderChecklist();
+  renderUsers();
+  renderAudit();
+}
+
+// Restore session if exists
+if (state.gasUrl) document.getElementById("gasUrlInput").value = state.gasUrl;
+if (state.session && state.session.user) {
+  enterApp();
+  syncFromBackend(false);
+}
+</script>
+</body>
+</html>
